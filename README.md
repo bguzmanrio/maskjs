@@ -20,8 +20,10 @@ There are just a few steps:
 
 1. You have to import mark.js into your project 
 2. Once imported, just get the input you want to be masked using jQuery:
+    ```
     <input id="maskExample" type="text"></input>
-    ```javascript
+    ```
+    ```
     Mask.newMask($("#maskExample"), pattern);
     ```
 3. Pattern is the mask you want to apply over the input. It can be one of the following:
