@@ -38,3 +38,7 @@ There are just a few steps:
 4. Additionaly you can add a number after n or az to limit the maximun characters users can write
 
 
+Try it out
+----------
+
+You can play around with it here: http://jsfiddle.net/16wsgx40/1/
