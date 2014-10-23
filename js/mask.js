@@ -277,7 +277,7 @@ var Mask = {};
             var valid = true;
             var dayValue = context.getValueFor("d", context.finalValue, context);
             if(dayValue.value && propagateValidation == true){
-                valid = context.validator["d"](dayValue.value, context);
+                valid = valid && context.validator["d"](dayValue.value, context);
             }
             return valid;
         },
@@ -286,7 +286,7 @@ var Mask = {};
             var valid = month >= 1 && month <= 12;
             var dayValue = context.getValueFor("d", context.finalValue, context);
             if(dayValue.value && propagateValidation == true){
-                valid = context.validator["d"](dayValue.value, context);
+                valid = valid && context.validator["d"](dayValue.value, context);
             }
             return valid;
         },
