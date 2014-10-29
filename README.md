@@ -57,4 +57,4 @@ There are just a few steps:
 Try it out
 ----------
 
-You can play around with it here: http://jsfiddle.net/16wsgx40/1/
+You can play around with it here: http://bguzmanrio.github.io/maskjs
