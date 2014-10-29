@@ -12,6 +12,28 @@ Dependencies?
 
 Mask.js works on most jQuery versions.
 
+Main Features
+-------------
+
+<ul>
+    <li>
+        Accepts any pattern order you would like to use
+    </li>
+    <li>
+        In case of dates, it will validates days out of range, and even leap years
+    </li>
+    <li>
+        You can use a custom function to handle the non validating inputs
+    </li>
+    <li>
+        It will write down any token automatically while you are typing.
+    </li>
+    <li>
+        In erasing, tokens will be omitted, and while you are re-typing, them are going to ve pass over
+    </li>
+    
+</ul>
+
 
 How can I use Mask.js?
 ----------------------
@@ -20,9 +42,7 @@ There are just a few steps:
 
 1. You have to import mark.js into your project 
 2. Once imported, just get the input you want to be masked using jQuery:
-    ```
-    <input id="maskExample" type="text"></input>
-    ```
+
     ```
     Mask.newMask($("#maskExample"), pattern);
     ```
