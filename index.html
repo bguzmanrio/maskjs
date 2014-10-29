@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="https://rawgit.com/bguzmanrio/maskjs/master/js/mask.js"></script>
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -20,7 +22,6 @@
 
         <p class="view"><a href="https://github.com/bguzmanrio/maskjs">View the Project on GitHub <small>bguzmanrio/maskjs</small></a></p>
 
-
         <ul>
           <li><a href="https://github.com/bguzmanrio/maskjs/zipball/master">Download <strong>ZIP File</strong></a></li>
           <li><a href="https://github.com/bguzmanrio/maskjs/tarball/master">Download <strong>TAR Ball</strong></a></li>
@@ -29,36 +30,85 @@
       </header>
       <section>
         <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>What is Mask.js about?</h3>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
-
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
-
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<p>Mask.js is a simple functionality that you can use to force user met a pattern into inputs.</p>
 
 <h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Dependencies</h3>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
-
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<p>Mask.js works on most jQuery versions.</p>
 
 <h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Main Features</h3>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<p>
+    <ul>
+        <li>Accepts any pattern order you would like to use</li>
+        <li>In case of dates, it will validates days out of range, and even leap years</li>
+        <li>You can use a custom function to handle the non validating inputs</li>
+        <li>It will write down any token automatically while you are typing.</li>
+        <li>In erasing, tokens will be omitted, and while you are re-typing, them are going to ve pass over</li>
+    </ul>
+</p>
 
 <h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>How can I use Mask.js?</h3>
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+<p>There are just a few steps:</p>
+
+<p>
+    <ol>
+        <li>
+            You have to import mark.js into your project
+        </li>
+        <li>
+            Once imported, just get the input you want to be masked using jQuery, passing the input as first argument:
+            <pre>Mask.newMask($("#maskExample"), pattern);</pre>
+        </li>
+        <li>
+            Pattern is the mask you want to apply over the input. It can be one of the following:
+            <ul>
+                <li>Any combination of YYYY-MM-DD HH:mm, where:
+                    <ul>
+                        <li>Y means year</li>
+                        <li>M means month</li>
+                        <li>D means day</li>
+                        <li>H means hour</li>
+                        <li>m means minutes</li>
+                    </ul>
+                </li>
+                <li>
+                    n for typing only numbers
+                </li>
+                <li>az for typing only characters</li>
+            </ul>
+        </li>
+        <li>Additionaly you can add a number after n or az to limit the maximun characters users can write</li>
+    </ol>
+    
+</p>
+
+<h3>
+<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Try it out</h3>
+
+
+    <div>
+        <input id="maskExample1"><span>YYYY-DD/MM HH:mm</span>
+    </div>
+    <div>
+        <input id="maskExample2"><span>HH:mm DD+MM+YYYY</span>
+    </div>
+    <div>
+        <input id="maskExample3"><span>HH:mm</span>
+    </div>
+    <div>
+        <input id="maskExample4"><span>Maximum 8 numbers</span>
+    </div>
+    <div>
+        <input id="maskExample5"><span>Only a-z characters</span>
+    </div>
+
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/bguzmanrio">bguzmanrio</a></p>
@@ -66,6 +116,33 @@ $ git checkout gh-pages
       </footer>
     </div>
     <script src="javascripts/scale.fix.js"></script>
-    
+    <script>
+        var patterns = [
+            "YYYY-DD/MM HH:mm",
+            "HH:mm DD+MM+YYYY",
+            "HH:mm",
+            "n8",
+            "az"
+        ];
+        var masks = [];
+        
+        var mask;
+        var input;
+        var pattern;
+        var setErrorFunction = function(isValid, input){
+            if(isValid == false){
+                input.parent().css("border", "1px solid red");
+            }else{
+                input.parent().css("border", "1px solid green");
+            }
+        }
+        
+        for(var i = 0; i< patterns.length ; i++){
+            pattern = patterns[i];
+            input = $("#maskExample" + (i+1));
+            mask = Mask.newMask(input, pattern, setErrorFunction);
+            masks.push(mask);
+        } 
+    </script>
   </body>
 </html>
