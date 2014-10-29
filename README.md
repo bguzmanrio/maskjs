@@ -48,16 +48,16 @@ There are just a few steps:
     ```
 3. Pattern is the mask you want to apply over the input. It can be one of the following:
 <ul>
-<li>Any combination of yyyy-MM-dd HH:mm, where:
+<li>Any combination of YYYY-MM-DD HH:mm, where:
 <ul>
     <li>
-        y means year
+        Y means year
     </li>
     <li>
         M means month
     </li>
     <li>
-        d means day
+        D means day
     </li>
     <li>
         H means hour
