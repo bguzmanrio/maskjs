@@ -47,16 +47,6 @@ var Mask = {};
                 createValidationFunction();
                 createException();
             }
-            var charObject = {
-                pos: i,
-                maskValue: char
-            }
-            if(i>0){
-                prevChar = this.linkedMask[i-1];
-                charObject.prevChar = prevChar;
-                prevChar.nextChar = charObject;
-            }
-            this.linkedMask.push(charObject);
         }
         
         function createTemplateFunction(){
@@ -142,7 +132,10 @@ var Mask = {};
         var inputParent = input.parent();
         var actualPos = input.get(0).selectionStart;
         
-        mustAdvancePositionBefore();
+        if(!this.specialMask){
+            mustAdvancePositionBefore();
+        }
+        
         context.event = event;
         composeFinalInput();
         context.completePattern();
@@ -161,8 +154,6 @@ var Mask = {};
             context.$el.get(0).selectionStart = actualPos + 1 ;
             context.$el.get(0).selectionEnd = actualPos + 1 ;
             context.finalValue = inputVal;
-            //context.keyPressHandler(e, context, true);
-            //context.$el.trigger("keypress", context.event);
         }
 
         function mustAdvancePositionBefore(){
@@ -189,15 +180,10 @@ var Mask = {};
 
             if(validFormat == false){
                 context.errors[context.lastInput] = true;    
-            }else{
-                if(context.linkedMask[actualPos]){
-                    context.linkedMask[actualPos].inputVal = newChar;
-                }
-
-                if(typeof context.errors[context.lastInput]){
-                    context.errors[context.lastInput] = false;
-                }
+            }else if(typeof context.errors[context.lastInput]){
+                context.errors[context.lastInput] = false;
             }
+            
             validFormat = context.checkOldErrors(context);
 
             if(context.errorFunction){
@@ -214,10 +200,8 @@ var Mask = {};
     
     Masker.prototype.isSpecialMask = function(mask, context){
         var mask = context.mask;
-        var maskLength = mask.length;
         var pattern;
         var patternName;
-        var patternLength;
         var patternModifier;
         
         $.each(context.specialTemplates, function(i,val){
@@ -244,7 +228,6 @@ var Mask = {};
         var event = this.event;
         var value = this.value = $(event.target).val();
         var context = this;
-        var length = value.length;
         var pattern = this.mask;
         var lastChar = String.fromCharCode(event.keyCode);
         var pos = this.$el.get(0).selectionStart;
@@ -252,11 +235,11 @@ var Mask = {};
         var specialMask = this.specialMask;
         var mustPrevent = false;
         var functionToApply;
-        this.getTokensBefore(pos);
         var groupComparison;
         var newPos;
+        this.getTokensBefore(pos);
         
-        if(isCharInPattern()){
+        if(isCharInPattern() && !isSpecialChar()){
             getNewCharNow();
             getTemplateChecker();
             checkTemplate();
@@ -267,6 +250,9 @@ var Mask = {};
         }
         preventWriting();
         
+        function isSpecialChar(){
+            return (charNow == lastChar) && context.doNotValidate[lastChar];
+        };
         
         function isCharInPattern(){
             return typeof charNow != "undefined" || specialMask;
@@ -297,13 +283,13 @@ var Mask = {};
         function mustAdvancePosition(){
             if(context.doNotValidate[charNow]){
                 context.advancePosition = true;
-                //context.validPattern == true;
             }
         };
         
         function isValidPattern(){
             if(context.validPattern == false){
                 setPrevent();
+                context.advancePosition = true;
             }
         };
         
@@ -314,15 +300,8 @@ var Mask = {};
         function preventWriting(){
             if(mustPrevent){
                 event.preventDefault();
-                addToken();
             }
         };
-        
-        function addToken(){
-            if(charNow && context.doNotValidate[charNow]){
-                this.$el.val(value+charNow);
-            }
-        }
     };
     
     Masker.prototype.validateValue = function(context, lastChar){
@@ -629,9 +608,6 @@ var Mask = {};
                 return true;
             }
         };
-
-        this.linkedMask = [];
-        this.linkedMask = [];
         this.specialModifiers = {};
         this.errors = {};
         this.doNotValidate = {};
