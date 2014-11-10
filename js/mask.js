@@ -16,22 +16,19 @@ var Mask = {};
     
     
     
+    
+    
+    
+    
     function Masker($el, mask, errorFunction){
-        this.linkedMask = [];
+        MaskerData.call(this);
+        this.prototype = Object.create(this);
         this.$el = $el;
         this.mask = mask.trim();
         this.errorFunction = errorFunction;
         this.addExtraChars();
         this.setMask();
     };
-    
-    Masker.prototype.linkedMask = [];
-    Masker.prototype.specialModifiers = {};
-    Masker.prototype.errors = {};
-    Masker.prototype.doNotValidate = {};
-    Masker.prototype.BACKSPACE = 8;
-    Masker.prototype.DELETE = 46;
-    Masker.prototype.tokensBefore = [];
     
     Masker.prototype.addExtraChars = function(){
         var i = 0;
@@ -91,19 +88,22 @@ var Mask = {};
             this.$el.on("keydown", function(e){
                 var input = $(this)
                 var inputVal = input.val();
-                var pos = $(this).get(0).selectionStart;
-                var backPosition = pos-1;
+                var inputElement = input.get(0);
+                var start = inputElement.selectionStart;
+                var end = inputElement.selectionEnd;
+                var pos = start;
+                var backPosition = start-1;
                 var char;
                 var mustCheck = false;
                 
                 if(isBackSpace()){
-                    pos--;
+                    start--;
                     mustCheck = true;
                 }else if(isDelete()){
                     mustCheck = true;
                 }
                 
-                if(mustCheck){
+                if(mustCheck && start == end){
                     mustPrevent();
                 }
                 
@@ -116,67 +116,100 @@ var Mask = {};
                 };
                 
                 function mustPrevent(){
-                    char = inputVal.charAt(pos);
+                    char = inputVal.charAt(start);
                     if(context.doNotValidate[char]){
-                        input.get(0).selectionStart = backPosition;
-                        input.get(0).selectionEnd = backPosition;
+                        inputElement.selectionStart = backPosition;
+                        inputElement.selectionEnd = backPosition;
                         e.preventDefault();
                     }
                 }
             })
             
             this.$el.on("keypress", function(e){
-                var validFormat;
-                var inputVal = $(e.target).val();
-                var newChar = String.fromCharCode(e.keyCode);
-                var inputParent = $(this).parent();
-                var actualPos = $(this).get(0).selectionStart;
-                
-                context.event = e;
-                composeFinalInput();
-                context.completePattern();
-                if(context.validPattern){
-                    validateValue();
-                }
-                if(context.advancePosition){
-                    context.advancePosition = false;
-                    context.$el.get(0).selectionStart = actualPos + 1 ;
-                    context.$el.get(0).selectionEnd = actualPos + 1 ;
-                }
-                
-                function composeFinalInput(){
-                    context.finalValue = context.insertCharInCaret(newChar, inputVal, actualPos);
-                };
-                
-                function validateValue(){
-                    
-                    validFormat = context.validateValue(context);
-                    
-                    if(validFormat == false){
-                        context.errors[context.lastInput] = true;    
-                    }else{
-                        if(context.linkedMask[actualPos]){
-                            context.linkedMask[actualPos].inputVal = newChar;
-                        }
-                        
-                        if(typeof context.errors[context.lastInput]){
-                            context.errors[context.lastInput] = false;
-                        }
-                    }
-                    validFormat = context.checkOldErrors(context);
-                    
-                    if(context.errorFunction){
-                        context.errorFunction(validFormat, context.$el)
-                    }else{
-                        if(validFormat == false){
-                            inputParent.css("border", "1px solid red");
-                        }else if(validFormat == true){
-                            inputParent.css("border", "none");
-                        }
-                    }
-                };
-            })
+                context.keyPressHandler(e, context);
+            });
         }
+    };
+                        
+    Masker.prototype.keyPressHandler = function(e, context, tokenSkipped){
+        //var event = arguments[1] || arguments[0];
+        var event = e;
+        var context = context;
+        var validFormat;
+        var input = $(event.target);
+        var inputVal = input.val();
+        var newChar = String.fromCharCode(event.keyCode);
+        var inputParent = input.parent();
+        var actualPos = input.get(0).selectionStart;
+        
+        mustAdvancePositionBefore();
+        context.event = event;
+        composeFinalInput();
+        context.completePattern();
+        if(context.validPattern){
+            validateValue();
+        }else{
+            validFormat == false;
+        }
+        
+        if(validFormat != false && tokenSkipped){
+            input.val(context.finalValue);
+        }
+        
+        if(context.advancePosition){
+            context.advancePosition = false;
+            context.$el.get(0).selectionStart = actualPos + 1 ;
+            context.$el.get(0).selectionEnd = actualPos + 1 ;
+            context.finalValue = inputVal;
+            //context.keyPressHandler(e, context, true);
+            //context.$el.trigger("keypress", context.event);
+        }
+
+        function mustAdvancePositionBefore(){
+            var actualChar = inputVal[actualPos];
+            var maskActualChar = context.mask[actualPos];
+            if(!actualChar && context.doNotValidate[maskActualChar]){
+                inputVal += maskActualChar;
+                input.val(inputVal);
+                input.get(0).selectionStart++;
+                actualPos++;
+            }else if(context.doNotValidate[actualChar]){
+                input.get(0).selectionStart++;
+                actualPos++;
+            }
+        }
+        
+        function composeFinalInput(){
+            context.finalValue = context.insertCharInCaret(newChar, inputVal, actualPos);
+        };
+
+        function validateValue(){
+
+            validFormat = context.validateValue(context);
+
+            if(validFormat == false){
+                context.errors[context.lastInput] = true;    
+            }else{
+                if(context.linkedMask[actualPos]){
+                    context.linkedMask[actualPos].inputVal = newChar;
+                }
+
+                if(typeof context.errors[context.lastInput]){
+                    context.errors[context.lastInput] = false;
+                }
+            }
+            validFormat = context.checkOldErrors(context);
+
+            if(context.errorFunction){
+                context.errorFunction(validFormat, context.$el)
+            }else{
+                if(validFormat == false){
+                    inputParent.css("border", "1px solid red");
+                }else if(validFormat == true){
+                    inputParent.css("border", "none");
+                }
+            }
+        };
     };
     
     Masker.prototype.isSpecialMask = function(mask, context){
@@ -264,6 +297,7 @@ var Mask = {};
         function mustAdvancePosition(){
             if(context.doNotValidate[charNow]){
                 context.advancePosition = true;
+                //context.validPattern == true;
             }
         };
         
@@ -280,8 +314,15 @@ var Mask = {};
         function preventWriting(){
             if(mustPrevent){
                 event.preventDefault();
+                addToken();
             }
         };
+        
+        function addToken(){
+            if(charNow && context.doNotValidate[charNow]){
+                this.$el.val(value+charNow);
+            }
+        }
     };
     
     Masker.prototype.validateValue = function(context, lastChar){
@@ -292,9 +333,7 @@ var Mask = {};
         if(!isValid && valueForLastChar.patternCount == valueForLastChar.inputCount){
             validationFunction = context.validator[charToValidate];
             isValid = validationFunction(valueForLastChar.value, context, true);
-            if(isValid){
-                context.autoCompleteWithToken(context);
-            }
+            context.autoCompleteWithToken(context);
         }
         return isValid;
     };
@@ -470,125 +509,137 @@ var Mask = {};
         return result;
     };
     
-    Masker.prototype.written = {};
-    
-    Masker.prototype.templates = {
-        "Y": function(char, input, context){
-            var length = input.length;
-            var number = context.templates["n"](char, input, context);
-            //context.lastInput = "Y";
-            return number;
-        },
-        "M": function(char, input, context){
-            var length = input.length;
-            var number = context.templates["n"](char, input, context); 
-            //context.lastInput = "M";
-            return number;
-        },
-        "D": function(char, input, context){
-            var length = input.length;
-            var number = context.templates["n"](char, input, context);
-            //context.lastInput = "D";
-            return number;
-        },
-        "H": function(char, input, context){
-            var length = input.length;
-            var number = context.templates["n"](char, input, context);
-            //context.lastInput = "H";
-            return number;
-        },
-        "m": function(char, input, context){
-            var length = input.length;
-            var number = context.templates["n"](char, input, context);
-            //context.lastInput = "m";
-            return number;
-        },
-        "n": function(char, input, context){
-            //context.lastInput = "n";
-            return parseInt(char) >= 0;
+    function MaskerData(){
+        this.written = {};
+
+        this.templates = {
+            "Y": function(char, input, context){
+                var length = input.length;
+                var number = context.templates["n"](char, input, context);
+                //context.lastInput = "Y";
+                return number;
+            },
+            "M": function(char, input, context){
+                var length = input.length;
+                var number = context.templates["n"](char, input, context); 
+                //context.lastInput = "M";
+                return number;
+            },
+            "D": function(char, input, context){
+                var length = input.length;
+                var number = context.templates["n"](char, input, context);
+                //context.lastInput = "D";
+                return number;
+            },
+            "H": function(char, input, context){
+                var length = input.length;
+                var number = context.templates["n"](char, input, context);
+                //context.lastInput = "H";
+                return number;
+            },
+            "m": function(char, input, context){
+                var length = input.length;
+                var number = context.templates["n"](char, input, context);
+                //context.lastInput = "m";
+                return number;
+            },
+            "n": function(char, input, context){
+                //context.lastInput = "n";
+                return parseInt(char) >= 0;
+            }
+        };
+
+        this.specialTemplates = {
+            "n": function(char, input, context){
+                //context.lastInput = "n";
+                var isNumber = parseInt(char) >= 0;
+                var modifier = context.specialModifiers["n"];
+                if(modifier){
+                    return isNumber && context.finalValue.length <= modifier;
+                }else{
+                    return isNumber;
+                }
+            },
+            "az": function(char, input, context){
+                //context.lastInput = "az";
+                var matches = char.match("[a-zA-Z]") || false;
+                var modifier = context.specialModifiers["az"];
+                if(modifier){
+                    return matches && context.finalValue.length <= modifier;
+                }else{
+                    return matches;
+                }
+            }
         }
-    };
-    
-    Masker.prototype.specialTemplates = {
-        "n": function(char, input, context){
-            //context.lastInput = "n";
-            var isNumber = parseInt(char) >= 0;
-            var modifier = context.specialModifiers["n"];
-            if(modifier){
-                return isNumber && context.finalValue.length <= modifier;
-            }else{
-                return isNumber;
-            }
-        },
-        "az": function(char, input, context){
-            //context.lastInput = "az";
-            var matches = char.match("[a-zA-Z]") || false;
-            var modifier = context.specialModifiers["az"];
-            if(modifier){
-                return matches && context.finalValue.length <= modifier;
-            }else{
-                return matches;
-            }
-        }
-    }
-    
-    Masker.prototype.validator = {
-        "Y": function(patternInput, context, propagateValidation){
-            var valid = true;
-            var dayValue = context.getValueFor("D", context.finalValue, context);
-            if(dayValue.value && propagateValidation == true){
-                valid = valid && context.validator["D"](dayValue.value, context);
-            }
-            return valid;
-        },
-        "M": function(patternInput, context, propagateValidation){
-            var month = parseInt(patternInput);
-            var valid = month >= 1 && month <= 12;
-            var dayValue = context.getValueFor("D", context.finalValue, context);
-            if(dayValue.value && propagateValidation == true){
-                valid = valid && context.validator["D"](dayValue.value, context);
-            }
-            return valid;
-        },
-        "D": function(patternInput, context){
-            var validationDate = new Date();
-            var day = parseInt(patternInput);
-            var maxDay = 31;
-            var month = context.getValueFor("M", context.finalValue, context);
-            var year = context.getValueFor("Y", context.finalValue, context);
-            
-            if(year.value && context.validator["Y"](year.value, context, false)){
-                validationDate.setFullYear(parseInt(year.value));
-            }
-            
-            if(month.value && context.validator["M"](month.value, context, false)){
-                validationDate.setMonth(parseInt(month.value));
-                validationDate.setDate(0);
-                maxDay = validationDate.getDate();
-            }
-            
-            if(day > 0 && day <= maxDay){
+
+        this.validator = {
+            "Y": function(patternInput, context, propagateValidation){
+                var valid = true;
+                var dayValue = context.getValueFor("D", context.finalValue, context);
+                if(dayValue.value && propagateValidation == true){
+                    valid = valid && context.validator["D"](dayValue.value, context);
+                }
+                return valid;
+            },
+            "M": function(patternInput, context, propagateValidation){
+                var month = parseInt(patternInput);
+                var valid = month >= 1 && month <= 12;
+                var dayValue = context.getValueFor("D", context.finalValue, context);
+                if(dayValue.value && propagateValidation == true){
+                    valid = valid && context.validator["D"](dayValue.value, context);
+                }
+                return valid;
+            },
+            "D": function(patternInput, context){
+                var validationDate = new Date();
+                var day = parseInt(patternInput);
+                var maxDay = 31;
+                var month = context.getValueFor("M", context.finalValue, context);
+                var year = context.getValueFor("Y", context.finalValue, context);
+
+                if(year.value && context.validator["Y"](year.value, context, false)){
+                    validationDate.setFullYear(parseInt(year.value));
+                }
+
+                if(month.value && context.validator["M"](month.value, context, false)){
+                    validationDate.setMonth(parseInt(month.value));
+                    validationDate.setDate(0);
+                    maxDay = validationDate.getDate();
+                }
+
+                if(day > 0 && day <= maxDay){
+                    return true;
+                }else{
+                    return false;
+                }
+            },
+            "H": function(patternInput){
+                var hour = parseInt(patternInput);
+                return hour >= 0 && hour <= 24;
+            },
+            "m": function(patternInput){
+                var minutes = parseInt(patternInput);
+                return minutes >= 0 && minutes <= 60;
+            },
+            "n": function(patternInput){
+                var number = parseInt(patternInput);
+                return number;
+            },
+            "az": function(patternInput){
                 return true;
-            }else{
-                return false;
             }
-        },
-        "H": function(patternInput){
-            var hour = parseInt(patternInput);
-            return hour >= 0 && hour <= 24;
-        },
-        "m": function(patternInput){
-            var minutes = parseInt(patternInput);
-            return minutes >= 0 && minutes <= 60;
-        },
-        "n": function(patternInput){
-            var number = parseInt(patternInput);
-            return number;
-        },
-        "az": function(patternInput){
-            return true;
-        },
-        
+        };
+
+        this.linkedMask = [];
+        this.linkedMask = [];
+        this.specialModifiers = {};
+        this.errors = {};
+        this.doNotValidate = {};
+        this.tokensBefore = [];
+
+
+        this.BACKSPACE = 8;
+        this.DELETE = 46;
     };
     
 }).apply(Mask);
