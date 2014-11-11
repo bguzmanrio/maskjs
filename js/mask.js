@@ -14,20 +14,40 @@ var Mask = {};
         char: "",
     };
     
-    
-    
-    
-    
-    
-    
     function Masker($el, mask, errorFunction){
         MaskerData.call(this);
         this.prototype = Object.create(this);
         this.$el = $el;
         this.mask = mask.trim();
         this.errorFunction = errorFunction;
+        this.getBrowser();
         this.addExtraChars();
         this.setMask();
+    };
+    
+    Masker.prototype.isIE = function(){
+        var userAgent = window.navigator.userAgent;
+        return userAgent.indexOf("MSIE") >= 0 || userAgent.indexOf("Trident") >= 0;
+    };
+    
+    Masker.prototype.isFirefox = function(){
+        var userAgent = window.navigator.userAgent;
+        return userAgent.indexOf("Firefox") >= 0;
+    };
+    
+    Masker.prototype.isChrome = function(){
+        var userAgent = window.navigator.userAgent;
+        return userAgent.indexOf("Chrome") >= 0;
+    };
+        
+    Masker.prototype.getBrowser = function(){
+        if(this.isIE()){
+            this.browser = "ie";
+        }else if(this.isFirefox()){
+            this.browser = "firefox";
+        }else if(this.isChrome()){
+            this.browser = "chrome";
+        }
     };
     
     Masker.prototype.addExtraChars = function(){
@@ -86,15 +106,22 @@ var Mask = {};
                 var char;
                 var mustCheck = false;
                 
-                if(isBackSpace()){
+                if(isBackSpace() || isDelete() ){
                     start--;
                     mustCheck = true;
-                }else if(isDelete()){
+                }else if(isSelection()){
                     mustCheck = true;
                 }
                 
-                if(mustCheck && start == end){
-                    mustPrevent();
+                if(mustCheck){
+                    avoidKeyPress();
+                    if(start == end){
+                        mustPrevent();
+                    }
+                }
+                
+                function avoidKeyPress(){
+                    context.browserFunctionalities.keydown[context.browser](context);
                 }
                 
                 function isBackSpace(){
@@ -103,6 +130,10 @@ var Mask = {};
                 
                 function isDelete(){
                     return e.keyCode == context.DELETE;
+                };
+                
+                function isSelection(){
+                    return context.MOVEMENT.indexOf(e.keyCode) >= 0;
                 };
                 
                 function mustPrevent(){
@@ -116,7 +147,14 @@ var Mask = {};
             })
             
             this.$el.on("keypress", function(e){
-                context.keyPressHandler(e, context);
+                e.stopImmediatePropagation();
+                var brwFunc = context.browserFunctionalities;
+                var browser = context.browser;
+                if(brwFunc.mustAllowKeyDown[browser](context)){
+                    context.keyPressHandler(e, context);
+                }
+                brwFunc.keyPress[browser](context);
+                
             });
         }
     };
@@ -128,16 +166,15 @@ var Mask = {};
         var validFormat;
         var input = $(event.target);
         var inputVal = input.val();
-        var newChar = String.fromCharCode(event.keyCode);
+        var newChar = String.fromCharCode(event.charCode);
         var inputParent = input.parent();
         var actualPos = input.get(0).selectionStart;
         
+        context.event = event;
+        composeFinalInput();
         if(!this.specialMask){
             mustAdvancePositionBefore();
         }
-        
-        context.event = event;
-        composeFinalInput();
         context.completePattern();
         if(context.validPattern){
             validateValue();
@@ -159,16 +196,19 @@ var Mask = {};
         function mustAdvancePositionBefore(){
             var actualChar = inputVal[actualPos];
             var maskActualChar = context.mask[actualPos];
-            if(!actualChar && context.doNotValidate[maskActualChar]){
-                inputVal += maskActualChar;
-                input.val(inputVal);
-                input.get(0).selectionStart++;
-                actualPos++;
-            }else if(context.doNotValidate[actualChar]){
-                input.get(0).selectionStart++;
-                actualPos++;
+            var group = context.getGroupValue(actualPos, inputVal);
+            if(group.isCompleted){
+                if(!actualChar && context.doNotValidate[maskActualChar]){
+                    inputVal += maskActualChar;
+                    input.val(inputVal);
+                    input.get(0).selectionStart++;
+                    actualPos++;
+                }else if(context.doNotValidate[actualChar]){
+                    input.get(0).selectionStart++;
+                    actualPos++;
+                }
             }
-        }
+        };
         
         function composeFinalInput(){
             context.finalValue = context.insertCharInCaret(newChar, inputVal, actualPos);
@@ -229,7 +269,7 @@ var Mask = {};
         var value = this.value = $(event.target).val();
         var context = this;
         var pattern = this.mask;
-        var lastChar = String.fromCharCode(event.keyCode);
+        var lastChar = String.fromCharCode(event.charCode);
         var pos = this.$el.get(0).selectionStart;
         var charNow = pattern[pos];
         var specialMask = this.specialMask;
@@ -327,7 +367,6 @@ var Mask = {};
             context.$el.val(finalInput);
             context.event.preventDefault();
         }
-       
     };
     
     Masker.prototype.checkOldErrors = function(context){
@@ -340,11 +379,11 @@ var Mask = {};
         return stillValid;
     }
     
-    Masker.prototype.getGroupValue = function(pos){
+    Masker.prototype.getGroupValue = function(pos, input){
         this.getTokensBefore(pos);
         var group = this.getPositionInMask();
         var groupCount = this.getNumberOf(group);
-        var bounds = this.getInputGroupBounds();
+        var bounds = this.getInputGroupBounds(input);
         if(bounds.start == -1){
             bounds.start = 0;
         }
@@ -361,8 +400,8 @@ var Mask = {};
         }
     };
     
-    Masker.prototype.getInputGroupBounds = function(){
-        var input = this.finalValue;
+    Masker.prototype.getInputGroupBounds = function(inputParam){
+        var input = inputParam || this.finalValue;
         var i = 0;
         var inputLength = input.length;
         var char;
@@ -541,7 +580,7 @@ var Mask = {};
             },
             "az": function(char, input, context){
                 //context.lastInput = "az";
-                var matches = char.match("[a-zA-Z]") || false;
+                var matches = char.match("[\u00F1a-zA-Z]") || false;
                 var modifier = context.specialModifiers["az"];
                 if(modifier){
                     return matches && context.finalValue.length <= modifier;
@@ -594,11 +633,11 @@ var Mask = {};
             },
             "H": function(patternInput){
                 var hour = parseInt(patternInput);
-                return hour >= 0 && hour <= 24;
+                return hour >= 0 && hour < 24;
             },
             "m": function(patternInput){
                 var minutes = parseInt(patternInput);
-                return minutes >= 0 && minutes <= 60;
+                return minutes >= 0 && minutes < 60;
             },
             "n": function(patternInput){
                 var number = parseInt(patternInput);
@@ -608,14 +647,52 @@ var Mask = {};
                 return true;
             }
         };
+        
+        this.browserFunctionalities = {
+            keyPress: {
+                ie: function(context){
+                    
+                },
+                firefox: function(context){
+                    context.avoidKeyPress = false;
+                },
+                chrome: function(context){
+                    
+                }
+            },
+            mustAllowKeyDown: {
+                ie: function(context){
+                    return true;
+                },
+                firefox: function(context){
+                    return !context.avoidKeyPress
+                },
+                chrome: function(context){
+                    return true;
+                }
+            },
+            keydown: {
+                ie: function(context){
+                    
+                },
+                firefox: function(context){
+                    context.avoidKeyPress = true;
+                },
+                chrome: function(context){
+                    
+                }
+            }
+        }
+        
         this.specialModifiers = {};
         this.errors = {};
         this.doNotValidate = {};
         this.tokensBefore = [];
-
-
         this.BACKSPACE = 8;
         this.DELETE = 46;
+        this.START = 36;
+        this.END = 35;
+        this.MOVEMENT = [36, 35, 37, 38, 39, 40];
     };
     
 }).apply(Mask);
