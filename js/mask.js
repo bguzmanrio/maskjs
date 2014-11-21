@@ -2,8 +2,8 @@ var Mask = {};
 
 (function(){
     
-    this.newMask = function($el, options, errorFunction){
-        return new Masker($el, options, errorFunction);
+    this.newMask = function(options){
+        return new Masker(options);
     }
         
     var masks = {
@@ -14,12 +14,15 @@ var Mask = {};
         char: "",
     };
     
-    function Masker($el, mask, errorFunction){
+    function Masker(options){
+        //$el, mask, errorFunction
         MaskerData.call(this);
         this.prototype = Object.create(this);
-        this.$el = $el;
-        this.mask = mask.trim();
-        this.errorFunction = errorFunction;
+        this.$el = options.$el;
+        this.mask = options.mask.trim();
+        this.errorFunction = options.errorFunction;
+        this.defaultValue = options.defaultValue;
+        this.isUtc = options.isUtc || false;
         this.getBrowser();
         this.addExtraChars();
         this.setMask();
@@ -94,6 +97,9 @@ var Mask = {};
         if(this.$el.is("input")){
             this.$el.attr("placeholder", this.mask);
             this.specialMask = this.isSpecialMask(this.mask, this);
+            if(this.defaultValue){                
+                this.setDefaultValue();
+            }
             
             this.$el.on("keydown", function(e){
                 var input = $(this)
@@ -256,6 +262,157 @@ var Mask = {};
         }
         
         return pattern;        
+    };
+    
+    Masker.prototype.UTCDateFunction = {
+        "true":{
+            "Y": "getUTCFullYear",
+            "M": "getUTCMonth",
+            "D": "getUTCDate",
+            "H": "getUTCHours",
+            "m": "getUTCMinutes",
+            "s": "getUTCSeconds",
+        },
+        "false":{
+            "Y": "getFullYear",
+            "M": "getMonth",
+            "D": "getDate",
+            "H": "getHours",
+            "m": "getMinutes",
+            "s": "getSeconds",
+        }
+    }
+    
+    Masker.prototype.createDefaultValue = {
+        "Y": function(context, length){
+            var defDate = new Date(context.defaultValue);
+            var isUtc = context.isUtc;
+            var stringFunction = context.UTCDateFunction[context.isUtc]["Y"];
+            return defDate[stringFunction]();
+            
+        },
+        "M": function(context, length){
+            var defDate = new Date(context.defaultValue);
+            var isUtc = context.isUtc;
+            var stringFunction = context.UTCDateFunction[context.isUtc]["M"];
+            return defDate[stringFunction]() + 1;
+        },
+        "D": function(context, length){
+            var defDate = new Date(context.defaultValue);
+            var isUtc = context.isUtc;
+            var stringFunction = context.UTCDateFunction[context.isUtc]["D"];
+            return defDate[stringFunction]();
+        },
+        "H": function(context, length){
+            var defDate = new Date(context.defaultValue);
+            var isUtc = context.isUtc;
+            var stringFunction = context.UTCDateFunction[context.isUtc]["H"];
+            return defDate[stringFunction]();
+        },
+        "m": function(context, length){
+            var defDate = new Date(context.defaultValue);
+            var isUtc = context.isUtc;
+            var stringFunction = context.UTCDateFunction[context.isUtc]["m"];
+            return defDate[stringFunction]();
+        },
+        "s": function(context, length){
+            var defDate = new Date(context.defaultValue);
+            var stringFunction = context.UTCDateFunction[context.isUtc]["s"];
+            return defDate[stringFunction]();
+        }
+    }
+    
+    Masker.prototype.setDefaultValue = function(){
+        var context = this;
+        var input = this.$el;
+        var defaultValue = this.defaultValue;
+        var finalValue = "";
+        var charsInMask = [];
+        var i = 0;
+        var mask = this.mask;
+        var nChars = mask.length;
+        var auxChar;
+        var nOccurrences;
+        var charObject = {
+            char: "",
+            occurrences: 0
+        };
+        var isAlreadyInList = {};
+        
+        if(this.isSpecialMask(mask, context)){
+            validateDefault();
+        }else{
+            getCharsInMask();
+            applyFormat();
+        }
+        context.$el.val(finalValue);
+        
+        function validateDefault(){
+            var key =  Object.keys(context.specialModifiers)[0];
+            var length = context.specialModifiers[key];
+            var tempString = defaultValue;
+            if(defaultValue.length > length){
+                tempString = defaultValue.substr(0, length);
+            }
+            if(context.validator[key](tempString)){
+                finalValue = tempString;   
+            }
+            
+        };
+        
+        function getCharsInMask(){
+            for(; i < nChars; i++){
+                charObject = {
+                    char: "",
+                    occurrences: 0
+                };
+                auxChar = mask[i];
+                charObject.char = auxChar;
+                if(context.doNotValidate[auxChar]){
+                    charObject.occurrences = 1;
+                    charsInMask.push(charObject);
+                }else if(!isAlreadyInList[auxChar]){
+                    isAlreadyInList[auxChar] = true;
+                    nOccurrences = context.getNumberOf(auxChar);
+                    charObject.occurrences = nOccurrences;
+                    charsInMask.push(charObject);
+                }
+            }
+        }
+        
+        function applyFormat(){
+            var i = 0;
+            var nCharsInList = charsInMask.length;
+            var charToParse;
+            var functionToApply;
+            var stringToAppend = "";
+            for(; i<nCharsInList; i++){
+                charToParse = charsInMask[i];
+                functionToApply = context.createDefaultValue[charToParse.char];
+                if(functionToApply){
+                    stringToAppend = functionToApply(context, charToParse.occurrences);
+                }else{
+                    stringToAppend = charToParse.char;
+                }
+                stringToAppend = readjustLength(stringToAppend.toString(), charToParse.occurrences);
+                finalValue += stringToAppend;
+            }
+        };
+        
+        function readjustLength(string, length){
+            var stringLength = string.length;
+            var subStringStart;
+            var value = string;
+            if(length<stringLength){
+                subStringStart = stringLength-length;
+                value = string.substr(subStringStart, stringLength);
+            }else if(length > stringLength){
+                diff = length - stringLength;
+                value = readjustLength("0" + value, length);
+            }
+            
+            return value;
+        };
     };
     
     Masker.prototype.insertCharInCaret = function(newChar, inputVal, actualPos){
@@ -644,7 +801,8 @@ var Mask = {};
                 return number;
             },
             "az": function(patternInput){
-                return true;
+                var matches = patternInput.match("[\u00F1a-zA-Z]") || false;
+                return matches;
             }
         };
         
