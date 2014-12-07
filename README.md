@@ -44,14 +44,14 @@ There are just a few steps:
 2. Once imported, just pass the next parameter with you desired configuration:
 
     ```
-    Mask.newMask(options);
-    {
-    $el: jQuery input,
-    mask: pattern to apply(described in the next section),
-    errorFunction: callback function triggered on every error,
-    defaultValue: defaultValue to be shown on initialization(applies on date format),
-    isUtc: if the pattern is a date format, utc will be considered
+    var options = {
+      $el: jQuery input,
+      mask: pattern to apply(described in the next section),
+      errorFunction: callback function triggered on every error,
+      defaultValue: defaultValue to be shown on initialization(applies on date format),
+      isUtc: if the pattern is a date format, utc will be considered
     }
+    Mask.newMask(options);
     ```
 3. Pattern is the mask you want to apply over the input. It can be one of the following:
 <ul>
