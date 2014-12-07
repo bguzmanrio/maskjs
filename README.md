@@ -41,10 +41,17 @@ How can I use Mask.js?
 There are just a few steps:
 
 1. You have to import mark.js into your project 
-2. Once imported, just get the input you want to be masked using jQuery:
+2. Once imported, just pass the next parameter with you desired configuration:
 
     ```
-    Mask.newMask($("#maskExample"), pattern);
+    Mask.newMask(options);
+    {
+    $el: jQuery input,
+    mask: pattern to apply(described in the next section),
+    errorFunction: callback function triggered on every error,
+    defaultValue: defaultValue to be shown on initialization(applies on date format),
+    isUtc: if the pattern is a date format, utc will be considered
+    }
     ```
 3. Pattern is the mask you want to apply over the input. It can be one of the following:
 <ul>
