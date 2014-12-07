@@ -64,7 +64,17 @@
         </li>
         <li>
             Once imported, just get the input you want to be masked using jQuery, passing the input as first argument:
-            <pre>Mask.newMask($("#maskExample"), pattern);</pre>
+            <pre>Mask.newMask(options);</pre>
+            Where options is a JS object containing the following attributes:
+            <pre>
+                {
+                    $el: jQuery input,
+                    mask: pattern to apply(described in the next section),
+                    errorFunction: callback function triggered on every error,
+                    defaultValue: defaultValue to be shown on initialization(applies on date format),
+                    isUtc: if the pattern is a date format, utc will be considered
+                }
+            </pre>
         </li>
         <li>
             Pattern is the mask you want to apply over the input. It can be one of the following:
@@ -124,11 +134,21 @@
             "n8",
             "az"
         ];
-        var masks = [];
+        var defaultValues = [
+            Date.now(),
+            Date.now(),
+            Date.now(),
+            54422342,
+        ]
+        var isUtc = [
+            true,
+            true,
+            false
+        ]
         
+        var options;
+        var masks = [];
         var mask;
-        var input;
-        var pattern;
         var setErrorFunction = function(isValid, input){
             if(isValid == false){
                 input.parent().css("border", "1px solid red");
@@ -138,9 +158,14 @@
         }
         
         for(var i = 0; i< patterns.length ; i++){
-            pattern = patterns[i];
-            input = $("#maskExample" + (i+1));
-            mask = Mask.newMask(input, pattern, setErrorFunction);
+            options = {
+                $el: $("#maskExample" + (i+1)),
+                mask: patterns[i],
+                errorFunction: setErrorFunction,
+                defaultValue: defaultValues[i],
+                isUtc: isUtc[i]
+            }
+            mask = Mask.newMask(options);
             masks.push(mask);
         } 
     </script>
