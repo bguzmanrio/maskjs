@@ -42,6 +42,11 @@ var Mask = {};
         var userAgent = window.navigator.userAgent;
         return userAgent.indexOf("Chrome") >= 0;
     };
+    
+    Masker.prototype.isSafari = function(){
+        var userAgent = window.navigator.userAgent;
+        return userAgent.indexOf("Safari") >= 0;
+    };
         
     Masker.prototype.getBrowser = function(){
         if(this.isIE()){
@@ -49,6 +54,8 @@ var Mask = {};
         }else if(this.isFirefox()){
             this.browser = "firefox";
         }else if(this.isChrome()){
+            this.browser = "chrome";
+        }else if(this.isSafari()){
             this.browser = "chrome";
         }
     };
