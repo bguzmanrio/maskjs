@@ -265,7 +265,8 @@ var Mask = {};
             }
         })
         if(patternModifier){
-            context.specialModifiers[patternName] = patternModifier;    
+            context.specialModifiers[patternName] = patternModifier;   
+			context.maskNoModifiers = patternName;
         }
         
         return pattern;        
@@ -443,7 +444,7 @@ var Mask = {};
         var newPos;
         this.getTokensBefore(pos);
         
-        if(isCharInPattern() && !isSpecialChar()){
+        if(isCharInPattern()){
             getNewCharNow();
             getTemplateChecker();
             checkTemplate();
@@ -525,8 +526,10 @@ var Mask = {};
         var pos = context.$el.get(0).selectionStart + 1;
         var maskChar = context.mask[pos];
         var inputChar = context.finalValue[pos];
+		var modifiers = context.specialModifiers || {};
+		var modifier = modifiers[context.maskNoModifiers];
         
-        if(context.doNotValidate[maskChar] && maskChar != inputChar){
+        if(context.doNotValidate[maskChar] && maskChar != inputChar && modifier != maskChar){
             var finalInput = context.insertCharInCaret(maskChar, context.finalValue, pos);
             context.$el.val(finalInput);
             context.event.preventDefault();
