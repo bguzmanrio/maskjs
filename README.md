@@ -49,6 +49,7 @@ There are just a few steps:
       mask: pattern to apply(described in the next section),
       errorFunction: callback function triggered on every error,
       defaultValue: defaultValue to be shown on initialization(applies on date format),
+      hidePlaceholder: boolean for not showing the pattern placeholder,
       isUtc: if the pattern is a date format, utc will be considered
     }
     Mask.newMask(options);
@@ -76,6 +77,7 @@ There are just a few steps:
 </li>
 <li>n for typing only numbers</li>
 <li>az for typing only characters</li>
+<li>az/n for typing both characters and numbers</li>
 </ul>
 
 4. Additionaly you can add a number after n or az to limit the maximun characters users can write
