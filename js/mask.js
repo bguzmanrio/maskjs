@@ -23,6 +23,7 @@ var Mask = {};
         this.errorFunction = options.errorFunction;
         this.defaultValue = options.defaultValue;
         this.isUtc = options.isUtc || false;
+        this.hidePlaceholder = options.hidePlaceholder || false;
         this.getBrowser();
         this.addExtraChars();
         this.setMask();
@@ -102,7 +103,9 @@ var Mask = {};
     Masker.prototype.setMask = function(){
         var context = this;
         if(this.$el.is("input")){
-            this.$el.attr("placeholder", this.mask);
+            if(!this.hidePlaceholder){
+                this.$el.attr("placeholder", this.mask);
+            }
             this.specialMask = this.isSpecialMask(this.mask, this);
             if(this.defaultValue){                
                 this.setDefaultValue();
@@ -241,12 +244,6 @@ var Mask = {};
 
             if(context.errorFunction){
                 context.errorFunction(validFormat, context.$el)
-            }else{
-                if(validFormat == false){
-                    inputParent.css("border", "1px solid red");
-                }else if(validFormat == true){
-                    inputParent.css("border", "none");
-                }
             }
         };
     };
@@ -747,12 +744,22 @@ var Mask = {};
             },
             "az": function(char, input, context){
                 //context.lastInput = "az";
-                var matches = char.match("[\u00F1a-zA-Z]") || false;
+                var matches = char.match("[\u00F1a-zA-Z]") || [];
                 var modifier = context.specialModifiers["az"];
                 if(modifier){
                     return matches && context.finalValue.length <= modifier;
                 }else{
-                    return matches;
+                    return matches.length;
+                }
+            },
+            "az/n": function(char, input, context){
+                //context.lastInput = "az";
+                var matches = char.match("[\u00F1a-zA-Z0-9]") || [];
+                var modifier = context.specialModifiers["az/n"];
+                if(modifier){
+                    return matches && context.finalValue.length <= modifier;
+                }else{
+                    return matches.length;
                 }
             }
         }
