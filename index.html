@@ -67,14 +67,14 @@
             <pre>Mask.newMask(options);</pre>
             Where options is a JS object containing the following attributes:
             <pre>
-                {
-                    $el: jQuery input,
-                    mask: pattern to apply(described in the next section),
-                    errorFunction: callback function triggered on every error,
-                    defaultValue: defaultValue to be shown on initialization(applies on date format),
-                    hidePlaceholder: boolean for not showing the pattern placeholder,
-                    isUtc: if the pattern is a date format, utc will be considered
-                }
+      {
+          $el: jQuery input,
+          mask: pattern to apply(described in the next section),
+          errorFunction: callback function triggered on every error,
+          defaultValue: defaultValue to be shown on initialization(applies on date format),
+          hidePlaceholder: boolean for not showing the pattern placeholder,
+          isUtc: if the pattern is a date format, utc will be considered
+      }
             </pre>
         </li>
         <li>
@@ -93,7 +93,7 @@
                     n for typing only numbers
                 </li>
                 <li>az for typing only characters</li>
-                <li>az/ for typing both characters and numbers</li>
+                <li>az/n for typing both characters and numbers</li>
             </ul>
         </li>
         <li>Additionaly you can add a number after n or az to limit the maximun characters users can write</li>
