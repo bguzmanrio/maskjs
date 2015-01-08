@@ -72,6 +72,7 @@
                     mask: pattern to apply(described in the next section),
                     errorFunction: callback function triggered on every error,
                     defaultValue: defaultValue to be shown on initialization(applies on date format),
+                    hidePlaceholder: boolean for not showing the pattern placeholder,
                     isUtc: if the pattern is a date format, utc will be considered
                 }
             </pre>
@@ -92,6 +93,7 @@
                     n for typing only numbers
                 </li>
                 <li>az for typing only characters</li>
+                <li>az/ for typing both characters and numbers</li>
             </ul>
         </li>
         <li>Additionaly you can add a number after n or az to limit the maximun characters users can write</li>
@@ -118,6 +120,9 @@
     <div>
         <input id="maskExample5"><span>Only a-z characters</span>
     </div>
+    <div>
+        <input id="maskExample6"><span>Only a-z characters and numbers, maximum 5 characters</span>
+    </div>
 
       </section>
       <footer>
@@ -132,7 +137,8 @@
             "HH:mm DD+MM+YYYY",
             "HH:mm",
             "n8",
-            "az"
+            "az",
+            "az/n5"
         ];
         var defaultValues = [
             Date.now(),
