@@ -255,7 +255,7 @@ var Mask = {};
         var patternModifier;
         
         $.each(context.specialTemplates, function(i,val){
-            if(mask !== i && mask.indexOf(i) >= 0){
+            if(mask.indexOf(i) >= 0){
                 pattern = val;
                 patternName = i;
                 patternModifier = parseInt(mask.substring(i.length));
@@ -338,6 +338,9 @@ var Mask = {};
         var nChars = mask.length;
         var auxChar;
         var nOccurrences;
+        var validator;
+        var key;
+        var tempString = defaultValue;
         var charObject = {
             char: "",
             occurrences: 0
@@ -345,24 +348,37 @@ var Mask = {};
         var isAlreadyInList = {};
         
         if(this.isSpecialMask(mask, context)){
-            validateDefault();
+            getKey();
+            getValidator();
+            validateLength();
+            validateValue();
         }else{
             getCharsInMask();
             applyFormat();
         }
         context.$el.val(finalValue);
         
-        function validateDefault(){
-            var key =  Object.keys(context.specialModifiers)[0];
+        function getKey(){
+            key = Object.keys(context.specialModifiers)[0];
+        };
+        
+        function getValidator(){
+            if(key){
+                validator = context.validator[key];
+            }
+        };
+        
+        function validateLength(){
             var length = context.specialModifiers[key];
-            var tempString = defaultValue;
             if(defaultValue.length > length){
                 tempString = defaultValue.substr(0, length);
             }
-            if(context.validator[key](tempString)){
+        };
+        
+        function validateValue(){
+            if(!validator || validator(tempString)){
                 finalValue = tempString;   
             }
-            
         };
         
         function getCharsInMask(){
