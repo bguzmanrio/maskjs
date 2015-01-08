@@ -255,7 +255,7 @@ var Mask = {};
         var patternModifier;
         
         $.each(context.specialTemplates, function(i,val){
-            if(mask.indexOf(i) >= 0){
+            if(mask !== i && mask.indexOf(i) >= 0){
                 pattern = val;
                 patternName = i;
                 patternModifier = parseInt(mask.substring(i.length));
