@@ -20,6 +20,7 @@ var Mask = {};
         this.prototype = Object.create(this);
         this.$el = options.$el;
         this.mask = options.mask.trim();
+        this.placeholder = options.placeholder;
         this.errorFunction = options.errorFunction;
         this.defaultValue = options.defaultValue;
         this.isUtc = options.isUtc || false;
@@ -104,7 +105,7 @@ var Mask = {};
         var context = this;
         if(this.$el.is("input")){
             if(!this.hidePlaceholder){
-                this.$el.attr("placeholder", this.mask);
+                this.$el.attr("placeholder", this.placeholder || this.mask);
             }
             this.specialMask = this.isSpecialMask(this.mask, this);
             if(this.defaultValue){                
